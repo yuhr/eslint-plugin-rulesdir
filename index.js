@@ -16,23 +16,22 @@ const path = require('path');
 // Plugin Definition
 //------------------------------------------------------------------------------
 
+const extension = /\.c?js$/
+
 const cache = {};
 module.exports = {
   get rules() {
-    const RULES_DIR = module.exports.RULES_DIR;
-    if (typeof module.exports.RULES_DIR !== 'string' && !Array.isArray(RULES_DIR)) {
-      throw new Error('To use eslint-plugin-rulesdir, you must load it beforehand and set the `RULES_DIR` property on the module to a string or an array of strings.');
-    }
+    const RULES_DIR = module.exports.RULES_DIR ?? [".eslint/rules"];
     const cacheKey = JSON.stringify(RULES_DIR);
     if (!cache[cacheKey]) {
       const rules = Array.isArray(RULES_DIR) ? RULES_DIR : [RULES_DIR];
       const rulesObject = {};
       rules.forEach((rulesDir) => {
         fs.readdirSync(rulesDir)
-          .filter(filename => filename.endsWith('.js'))
+          .filter(filename => extension.test(filename))
           .map(filename => path.resolve(rulesDir, filename))
           .forEach((absolutePath) => {
-            const ruleName = path.basename(absolutePath, '.js');
+            const ruleName = path.basename(absolutePath).replace(extension, "");
             if (rulesObject[ruleName]) {
               throw new Error(`eslint-plugin-rulesdir found two rules with the same name: ${ruleName}`);
             }
